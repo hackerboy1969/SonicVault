@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#4f46e5">
+<title>Audio Encrypter &amp; Decrypter</title>
+<style>
+:root{color-scheme:light;--bg:#f4f5fa;--surface:#fff;--surface2:#eff1f8;--line:#dde1ee;--text:#12182a;--muted:#5d6883;--accent:#4f46e5;--accent-h:#4338ca;--accent-s:#ecebfd;--on-accent:#fff;--cyan:#0891b2;--good:#0f7d4a;--good-s:#e3f6ec;--bad:#c42b3d;--bad-s:#fdeaec;--shadow:0 1px 2px #1018280d,0 8px 24px #1018280a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0a0e19;--surface:#121929;--surface2:#19223a;--line:#27324c;--text:#e8ecf7;--muted:#97a3c0;--accent:#8c8cff;--accent-h:#a8a8ff;--accent-s:#1e2248;--on-accent:#0a0e19;--cyan:#22d3ee;--good:#4ade9b;--good-s:#10291f;--bad:#ff7f90;--bad-s:#2e151c;--shadow:0 1px 2px #0006,0 10px 30px #0004}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--text);font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(900px 380px at 12% -8%,var(--accent-s),transparent 70%),var(--bg);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shell{max-width:1180px;margin:auto;padding:20px 22px 44px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0 22px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--on-accent);background:linear-gradient(135deg,var(--accent),var(--cyan));box-shadow:var(--shadow)}
+.brand-name{font-size:16px;font-weight:800;letter-spacing:-.2px;line-height:1.2}.brand-sub{color:var(--muted);font-size:12px}
+.theme-btn{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:650;box-shadow:var(--shadow)}.theme-btn:hover{border-color:var(--accent)}
+.hero{max-width:760px;margin:6px 0 26px}.eyebrow{display:inline-block;color:var(--accent);background:var(--accent-s);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.hero h1{font-size:clamp(30px,4.6vw,46px);line-height:1.1;letter-spacing:-1.4px;margin:14px 0 12px}
+.hero h1 span{background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);margin:0;max-width:660px}
+.tabs{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:0 0 18px;box-shadow:var(--shadow)}
+.tab{border:0;background:transparent;color:var(--muted);padding:10px 18px;border-radius:10px;font-weight:700;font-size:14px;transition:.15s}.tab:hover{color:var(--text)}.tab.active{background:var(--accent);color:var(--on-accent)}
+.workspace{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px;margin-bottom:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow);min-width:0}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.panel h2{font-size:18px;margin:2px 0 4px;letter-spacing:-.3px}.panel-head p,.hint{color:var(--muted);font-size:13px;margin:0}
+.step{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.1em}
+.field-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 8px;font-size:13px;font-weight:700}.counter{font-size:11px;color:var(--muted);font-weight:500}
+textarea,input[type=text],input[type=password],input[type=search],input[type=file],.field{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);outline:none}
+textarea{min-height:150px;resize:vertical;line-height:1.65;font-family:var(--mono);font-size:14px}
+textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+input[type=file]{display:block;padding:10px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:99px;padding:6px 13px;font-size:12px;font-weight:600}.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{border:1px solid transparent;border-radius:11px;padding:10px 18px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-primary{background:var(--accent);color:var(--on-accent)}.btn-primary:hover{background:var(--accent-h)}
+.btn-ghost{background:var(--surface);border-color:var(--line);color:var(--text)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{margin-top:18px;padding:12px 14px;border-radius:12px;font-size:13px;overflow-wrap:anywhere;background:var(--surface2);border:1px solid var(--line);border-left:3px solid var(--accent);color:var(--text)}
+.status.good{background:var(--good-s);border-color:var(--good);color:var(--good)}.status.bad{background:var(--bad-s);border-color:var(--bad);color:var(--bad)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+.stat{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.stat small{display:block;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.06em;margin-bottom:3px}.stat strong{font-size:16px;letter-spacing:-.3px}
+.dropzone{border:2px dashed var(--line);border-radius:16px;padding:30px 16px;text-align:center;background:var(--surface2);transition:.2s;cursor:pointer}.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--accent-s)}
+.drop-icon{font-size:30px;margin-bottom:6px;color:var(--accent)}.dropzone strong{display:block;font-size:15px}.dropzone p{font-size:12px;color:var(--muted);margin:6px 0 14px}.dropzone input{display:none}
+.result{min-height:150px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--text);font:13px/1.7 var(--mono)}
+.history{margin-top:22px}.history h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}.history-list{display:grid;gap:8px}
+.history-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.history-item strong{font-size:12px;display:block;overflow-wrap:anywhere}.history-item small{color:var(--muted);font-size:11px}
+.mini-btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;white-space:nowrap;text-decoration:none}.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.empty{color:var(--muted);font-size:12px;text-align:center;padding:18px;border:1px dashed var(--line);border-radius:12px}
+.note{color:var(--muted);font-size:12px;margin-top:14px}
+.footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:28px;padding:16px 2px 0;border-top:1px solid var(--line)}
+.hidden{display:none!important}
+.meter{height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:14px}.meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .2s}
+.file-meta{font-size:12px;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
+.lib{margin-bottom:18px}.op-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px;max-height:340px;overflow:auto;padding-right:2px}
+.op-cat{border:1px solid var(--line);border-radius:12px;background:var(--surface2);align-self:start}.op-cat summary{cursor:pointer;padding:10px 12px;font-weight:700;display:flex;justify-content:space-between;font-size:13px}
+.op-cat summary span{color:var(--muted);font-weight:500;font-size:12px}.op-list{max-height:220px;overflow:auto;padding:0 6px 8px}
+.op{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:5px 8px;border-radius:8px;font-size:13px}.op:hover{background:var(--accent-s);color:var(--accent)}.op.off{color:var(--muted);opacity:.65}
+.rstep{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+.rstep b{flex:1;min-width:120px;font-size:13px}.rstep .field{width:140px;padding:6px 10px}.rstep.bad{border-color:var(--bad)}
+audio{border-radius:10px}
+@media(max-width:820px){.workspace{grid-template-columns:1fr}.shell{padding:14px 14px 30px}.panel{padding:19px}}
+@media(max-width:450px){.tabs{display:flex;width:100%}.tab{flex:1;padding:10px 6px;font-size:12px}.actions .btn{flex:1}.panel-head{flex-direction:column}.brand-sub{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 12h2M7.5 7v10M12 3v18M16.5 8v8M21 11v2"/></svg></span><div><div class="brand-name">Audio Encrypter &amp; Decrypter</div><div class="brand-sub">Encode signals and protect audio files</div></div></div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle light or dark theme">◐ Theme</button>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">Audio tools · Private by design</div>
+    <h1>Audio in. Protection on.<br><span>Restore when ready.</span></h1>
+    <p>Create tone-based audio messages, decode compatible signals from browser-supported audio formats, or password-encrypt audio files in common formats. No analytics, tracking scripts, or remote upload endpoints are included.</p>
+  </section>
+  <nav class="tabs" aria-label="Audio tools">
+    <button class="tab active" id="tabEncode" onclick="switchMode('encode')">↗ Encode message</button>
+    <button class="tab" id="tabDecode" onclick="switchMode('decode')">↙ Decode signal</button>
+    <button class="tab" id="tabFileCrypto" onclick="switchMode('crypto')">🔒 Encrypt / decrypt files</button>
+  </nav>
+  <section class="panel lib" id="library" aria-label="Operations library">
+    <div class="panel-head"><div><div class="step">OPERATIONS LIBRARY</div><h2>Transform with operations</h2><p id="libCount"></p></div></div>
+    <input id="opSearch" class="field" type="search" placeholder="Search operations…" aria-label="Search operations">
+    <div id="opCats" class="op-cats"></div>
+  </section>
+  <main>
+    <section id="encodeView" class="workspace">
+      <div class="panel">
+        <div class="panel-head"><div><div class="step">01 / INPUT</div><h2>Create an audio message</h2><p>Enter text to encode into two-tone audio.</p></div><span style="font-size:24px">⌁</span></div>
+        <label class="field-label" for="message">Message payload <span class="counter" id="charCount">0 characters</span></label>
+        <textarea id="message" maxlength="1200" placeholder="Type or paste your message here…"></textarea>
+        <div class="quick">
+          <button class="chip" onclick="setExample('Security test: signal received.')">Sample message</button>
+          <button class="chip" onclick="setExample('Meet at the lab at 09:00.')">Short note</button>
+          <button class="chip" onclick="setExample('AudioCrypt demo — 1000 Hz represents 0 and 2000 Hz represents 1.')">Protocol demo</button>
+        </div>
+        <div class="actions"><button class="btn btn-primary" id="generateBtn" onclick="generateAudio()">♫ Generate WAV</button><button class="btn btn-ghost" onclick="clearMessage()">Clear text</button></div>
+        <div id="encodeStatus" class="status info" role="status">Ready. Enter a message to begin.</div>
+        <div class="meter"><span id="encodeMeter"></span></div>
+        <div class="stat-grid"><div class="stat"><small>ENCODING</small><strong>8 bits / character</strong></div><div class="stat"><small>SIGNAL MAP</small><strong>1 kHz · 2 kHz</strong></div><div class="stat"><small>BIT DURATION</small><strong>1.00 second</strong></div><div class="stat"><small>OUTPUT FORMAT</small><strong>WAV · PCM 16-bit</strong></div></div>
+      </div>
+      <aside class="panel">
+        <div class="panel-head"><div><div class="step">02 / OUTPUT</div><h2>Generated audio</h2><p>Preview and save your encoded file.</p></div></div>
+        <div id="encodeOutput" class="empty">Your generated audio file will appear here.</div>
+        <div class="history"><h3>Recent generated files</h3><div id="encodeHistory" class="history-list"><div class="empty">No files generated in this session.</div></div></div>
+        <p class="note">Protocol: 2-second 2 kHz lead tone, then each UTF-8 byte is sent MSB-first (1 kHz = 0, 2 kHz = 1) with a 50 ms gap, followed by a 2-second 2 kHz end tone.</p>
+      <div class="panel"><div class="panel-head"><div><div class="step">03 / RECIPE</div><h2>Recipe</h2><p>Operations applied to the message before it is encoded as audio.</p></div><button class="btn btn-ghost" onclick="clearRecipe('encode')">Clear recipe</button></div><div id="recipe-encode"></div><div id="encodeRecipeErr" class="status bad hidden" role="alert"></div></div>
+      <aside class="panel"><div class="panel-head"><div><div class="step">04 / PAYLOAD</div><h2>Payload to encode</h2><p id="payloadMeta">—</p></div></div><div id="payloadOut" class="result"></div></aside>
+    </section>
+    <section id="decodeView" class="workspace hidden">
+      <div class="panel">
+        <div class="panel-head"><div><div class="step">01 / INPUT</div><h2>Decode an audio signal</h2><p>Choose a supported audio file containing an AudioCrypt tone signal.</p></div><span style="font-size:24px">⌕</span></div>
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose WAV file">
+          <div class="drop-icon">⇧</div><strong>Drop an audio file here</strong><p>or browse from your device · WAV, MP3, M4A, OGG, FLAC, AAC, and browser-supported formats</p><button class="btn btn-ghost" type="button" onclick="document.getElementById('audioFile').click()">Choose audio file</button><input id="audioFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.opus,.wma,.aiff,.aif,.webm,.weba,.caf,.au,.mp4">
+        </div>
+        <div id="fileMeta" class="file-meta"></div>
+        <div id="decodeStatus" class="status info" role="status">Waiting for an audio file.</div>
+        <div class="meter"><span id="decodeMeter"></span></div>
+        <div class="actions"><button class="btn btn-ghost" onclick="clearDecode()">Clear result</button><button class="btn btn-ghost" onclick="exportMessage()">Export TXT</button></div>
+        <p class="note">The decoder accepts audio formats your browser can decode. For reliable results, use the original uncompressed WAV: MP3/AAC/OGG and other lossy formats may distort the tones. Very long messages create long files because each bit lasts one second.</p>
+      </div>
+      <aside class="panel">
+        <div class="panel-head"><div><div class="step">02 / RESULT</div><h2>Recovered message</h2><p>Decoded text appears below after processing.</p></div></div>
+        <div id="decodeResult" class="result">No message decoded yet.</div>
+        <div class="stat-grid"><div class="stat"><small>FILE DURATION</small><strong id="durationStat">—</strong></div><div class="stat"><small>SAMPLE RATE</small><strong id="rateStat">—</strong></div><div class="stat"><small>DECODED BITS</small><strong id="bitsStat">—</strong></div><div class="stat"><small>CHARACTERS</small><strong id="decodedChars">—</strong></div></div>
+        <div class="history"><h3>Recent decoding history</h3><div id="decodeHistory" class="history-list"><div class="empty">No files decoded in this session.</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="step">03 / RECIPE</div><h2>Recipe</h2><p>Operations applied to the recovered message.</p></div><button class="btn btn-ghost" onclick="clearRecipe('decode')">Clear recipe</button></div><div id="recipe-decode"></div><div id="decodeRecipeErr" class="status bad hidden" role="alert"></div></div>
+      <aside class="panel"><div class="panel-head"><div><div class="step">04 / OUTPUT</div><h2>Output</h2><p id="outMeta">—</p></div></div><div id="decodeOutput" class="result">—</div>
+        <div class="actions"><button class="btn btn-primary" onclick="copyOutput()">Copy</button><button class="btn btn-ghost" onclick="exportMessage()">Export .txt</button><button class="btn btn-ghost" onclick="clearDecode()">Clear</button></div></aside>
+    </section>
+
+    <section id="cryptoView" class="workspace hidden">
+      <div class="panel">
+        <div class="panel-head"><div><div class="step">01 / ENCRYPT</div><h2>Encrypt an audio file</h2><p>Protect MP3, WAV, M4A, OGG, FLAC, and other audio files with a password.</p></div></div>
+        <label class="field-label" for="encryptFile">Choose audio file</label>
+        <input id="encryptFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.opus,.wma" class="field">
+        <label class="field-label" for="encryptPassword">Encryption password</label>
+        <input id="encryptPassword" type="password" autocomplete="new-password" placeholder="Use a strong password" class="field">
+        <label class="field-label" for="encryptConfirm">Confirm password</label>
+        <input id="encryptConfirm" type="password" autocomplete="new-password" placeholder="Enter the password again" class="field">
+        <div class="actions"><button class="btn btn-primary" id="encryptBtn" onclick="encryptAudioFile()">🔒 Encrypt audio</button></div>
+        <div id="encryptStatus" class="status info" role="status">Choose a file and enter a password.</div>
+        <p class="note">Uses AES-256-GCM with a random salt and IV. Keep your password safe; it cannot be recovered if lost.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><div class="step">02 / DECRYPT</div><h2>Decrypt an encrypted file</h2><p>Restore a file previously encrypted by this tool.</p></div></div>
+        <label class="field-label" for="decryptFile">Choose encrypted .aenc file</label>
+        <input id="decryptFile" type="file" accept=".aenc,application/octet-stream" class="field">
+        <label class="field-label" for="decryptPassword">Decryption password</label>
+        <input id="decryptPassword" type="password" autocomplete="current-password" placeholder="Enter the original password" class="field">
+        <div class="actions"><button class="btn btn-primary" id="decryptBtn" onclick="decryptAudioFile()">🔓 Decrypt audio</button><button class="btn btn-ghost" onclick="clearCrypto()">Clear</button></div>
+        <div id="decryptStatus" class="status info" role="status">Select an .aenc file to begin.</div>
+        <p class="note">Decryption only works with files created by this tool and the correct password. The decrypted file is downloaded to your device.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><span>Audio Encrypter &amp; Decrypter</span><span>Created by Yaswanth Maruthi</span></footer>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let generated = [];
+let decodedMessage = '';
+let decodedHistory = [];
+// ===== Operations engine =====
+const enc=new TextEncoder(),dec=new TextDecoder();
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const B=s=>enc.encode(s),S=b=>dec.decode(Uint8Array.from(b));
+const CAT=[
+["Favourites",""],
+["Data format","To Hexdump|From Hexdump|To Hex|From Hex|To Charcode|From Charcode|To Decimal|From Decimal|To Float|From Float|To Binary|From Binary|To Octal|From Octal|To Base32|From Base32|To Base45|From Base45|To Base58|From Base58|To Bech32|From Bech32|To Base62|From Base62|To Base64|From Base64|Show Base64 offsets|To Base92|From Base92|To Base85|From Base85|To Base|From Base|To BCD|From BCD|Text-Integer Conversion|To HTML Entity|From HTML Entity|URL Encode|URL Decode|Escape Unicode Characters|Unescape Unicode Characters|Normalise Unicode|Escape Smart Characters|To Quoted Printable|From Quoted Printable|To Punycode|From Punycode|AMF Encode|AMF Decode|To Hex Content|From Hex Content|PEM to Hex|Hex to PEM|Parse ASN.1 hex string|Change IP format|Encode text|Decode text|Text Encoding Brute Force|Swap endianness|To MessagePack|From MessagePack|To Braille|From Braille|Parse TLV|CSV to JSON|JSON to CSV|Avro to JSON|CBOR Encode|CBOR Decode|YAML to JSON|JSON to YAML|Caret/M-decode|Rison Encode|Rison Decode|To Modhex|From Modhex|MIME Decoding|To COBS|From COBS"],
+["Encryption / Encoding","AES Encrypt|AES Decrypt|Blowfish Encrypt|Blowfish Decrypt|DES Encrypt|DES Decrypt|Triple DES Encrypt|Triple DES Decrypt|Fernet Encrypt|Fernet Decrypt|LS47 Encrypt|LS47 Decrypt|RC2 Encrypt|RC2 Decrypt|RC4|RC4 Drop|ChaCha|Salsa20|XSalsa20|Rabbit|SM4 Encrypt|SM4 Decrypt|RC6 Encrypt|RC6 Decrypt|Ascon Encrypt|Ascon Decrypt|PRESENT Encrypt|PRESENT Decrypt|Twofish Encrypt|Twofish Decrypt|GOST Encrypt|GOST Decrypt|GOST Sign|GOST Verify|GOST Key Wrap|GOST Key Unwrap|ROR13|ROT13|ROT13 Brute Force|ROT47|ROT47 Brute Force|ROT8000|XOR|XOR Brute Force|Vigenère Encode|Vigenère Decode|TEA Encrypt|TEA Decrypt|XTEA Encrypt|XTEA Decrypt|XXTEA Encrypt|XXTEA Decrypt|To Morse Code|From Morse Code|Bacon Cipher Encode|Bacon Cipher Decode|Bifid Cipher Encode|Bifid Cipher Decode|Caesar Box Cipher|Affine Cipher Encode|Affine Cipher Decode|A1Z26 Cipher Encode|A1Z26 Cipher Decode|Rail Fence Cipher Encode|Rail Fence Cipher Decode|Atbash Cipher|CipherSaber2 Encrypt|CipherSaber2 Decrypt|Cetacean Cipher Encode|Cetacean Cipher Decode|Substitute|Derive PBKDF2 key|Derive EVP key|Derive HKDF key|Bcrypt|Scrypt|JWT Sign|JWT Verify|JWT Decode|Citrix CTX1 Encode|Citrix CTX1 Decode|AES Key Wrap|AES Key Unwrap|Pseudo-Random Number Generator|Pseudo-Random Prime Generator|Enigma|Bombe|Multiple Bombe|Typex|Lorenz|Colossus|SIGABA|Flask Session Decode|Flask Session Sign|Flask Session Verify"],
+["Public Key","Parse X.509 certificate|Parse X.509 certificate bundles|Parse X.509 CRL|Parse ASN.1 hex string|PEM to Hex|Hex to PEM|Hex to Object Identifier|Object Identifier to Hex|PEM to JWK|JWK to PEM|Generate PGP Key Pair|PGP Encrypt|PGP Decrypt|PGP Sign|PGP Verify|PGP Encrypt and Sign|PGP Decrypt and Verify|Parse PGP Key|Generate RSA Key Pair|RSA Sign|RSA Verify|RSA Encrypt|RSA Decrypt|Generate ECDSA Key Pair|ECDSA Signature Conversion|ECDSA Sign|ECDSA Verify|Parse SSH Host Key|Parse CSR|Public Key from Certificate|Public Key from Private Key|SM2 Encrypt|SM2 Decrypt"],
+["Arithmetic / Logic","Set Union|Set Intersection|Set Difference|Symmetric Difference|Cartesian Product|Power Set|XOR|XOR Brute Force|OR|NOT|AND|ADD|SUB|Sum|Subtract|Multiply|Divide|MOD|Extended GCD|Modular Exponentiation|Modular Inverse|Mean|Median|Standard Deviation|Bit shift left|Bit shift right|Rotate left|Rotate right|ROR13|ROT13|ROT8000"],
+["Networking","HTTP request|DNS over HTTPS|Strip HTTP headers|Dechunk HTTP response|Parse Ethernet frame|Parse User Agent|Parse IP range|Parse IPv6 address|IPv6 Transition Addresses|Parse IPv4 header|Strip IPv4 header|Parse TCP|Strip TCP header|Parse TLS record|Parse UDP|Strip UDP header|Parse SSH Host Key|Parse URI|URL Encode|URL Decode|Protobuf Decode|Protobuf Encode|VarInt Encode|VarInt Decode|JA3 Fingerprint|JA3S Fingerprint|JA4 Fingerprint|JA4Server Fingerprint|HASSH Client Fingerprint|HASSH Server Fingerprint|Format MAC addresses|Change IP format|Group IP addresses|Encode NetBIOS Name|Decode NetBIOS Name|Defang URL|Fang URL|Defang IP Addresses"],
+["Language","Encode text|Decode text|Unicode Text Format|Remove Diacritics|Unescape Unicode Characters|Convert to NATO alphabet|Convert Leet Speak"],
+["Utils","Diff|Remove whitespace|Remove null bytes|Remove ANSI Escape Codes|To Upper case|To Lower case|Swap case|Alternating Caps|To Case Insensitive Regex|From Case Insensitive Regex|Add line numbers|Remove line numbers|Get All Casings|To Table|Reverse|Sort|Shuffle|Unique|Split|Filter|Head|Tail|Count occurrences|Expand alphabet range|Drop bytes|Take bytes|Pad lines|Find / Replace|Regular expression|Fuzzy Match|Offset checker|Hamming Distance|Levenshtein Distance|Convert distance|Convert area|Convert mass|Convert speed|Convert data units|Convert co-ordinate format|Show on map|Parse UNIX file permissions|Parse ObjectID timestamp|Swap endianness|Parse colour code|Escape string|Unescape string|Pseudo-Random Number Generator|Sleep|File Tree|Wrap|Take nth bytes|Drop nth bytes"],
+["Date / Time","Parse DateTime|Translate DateTime Format|From UNIX Timestamp|To UNIX Timestamp|Windows Filetime to UNIX Timestamp|UNIX Timestamp to Windows Filetime|DateTime Delta|Extract dates|Get Time|Sleep"],
+["Extractors","Strings|Extract IP addresses|Extract email addresses|Extract MAC addresses|Extract URLs|Extract domains|Extract file paths|Extract dates|Extract hashes|Regular expression|XPath expression|JPath expression|Jsonata Query|CSS selector|Extract EXIF|Extract ID3|Extract Audio Metadata|Extract Files|RAKE|Template"],
+["Compression","Raw Deflate|Raw Inflate|Zlib Deflate|Zlib Inflate|Gzip|Gunzip|Zip|Unzip|Bzip2 Decompress|Bzip2 Compress|Tar|Untar|LZString Decompress|LZString Compress|LZMA Decompress|LZMA Compress|LZ4 Decompress|LZ4 Compress|LZNT1 Decompress|XPRESS Decompress|XPRESS LZ77+Huffman Decompress"],
+["Hashing","Analyse hash|Generate all checksums|Generate all hashes|MD2|MD4|MD5|MD6|SHA0|SHA1|SHA2|SHA3|SM3|Keccak|Shake|RIPEMD|HAS-160|Whirlpool|Snefru|BLAKE2b|BLAKE2s|BLAKE3|Ascon Hash|Ascon MAC|GOST Hash|Streebog|SSDEEP|CTPH|Compare SSDEEP hashes|Compare CTPH hashes|HMAC|CMAC|Bcrypt|Bcrypt compare|Bcrypt parse|Argon2|Argon2 compare|Scrypt|NT Hash|LM Hash|MurmurHash3|Fletcher-8 Checksum|Fletcher-16 Checksum|Fletcher-32 Checksum|Fletcher-64 Checksum|Adler-32 Checksum|Luhn Checksum|CRC Checksum|TCP/IP Checksum|XOR Checksum|Parity Bit"],
+["Code tidy","Syntax highlighter|Generic Code Beautify|JavaScript Parser|JavaScript Beautify|JavaScript Minify|JSON Beautify|JSON Minify|XML Beautify|XML Minify|SQL Beautify|SQL Minify|CSS Beautify|CSS Minify|XPath expression|JPath expression|Jq|CSS selector|PHP Deserialize|PHP Serialize|Microsoft Script Decoder|Strip HTML tags|Diff|To Snake case|To Camel case|To Kebab case|BSON serialise|BSON deserialise|To MessagePack|From MessagePack|Render Markdown"],
+["Forensics","Detect File Type|Scan for Embedded Files|Extract Files|YARA Rules|Remove EXIF|Extract EXIF|Extract RGBA|View Bit Plane|Randomize Colour Palette|Extract LSB|ELF Info|Extract Audio Metadata"],
+["Multimedia","Render Image|Play Media|Generate Image|Optical Character Recognition|Remove EXIF|Extract EXIF|Split Colour Channels|Rotate Image|Resize Image|Blur Image|Dither Image|Invert Image|Flip Image|Crop Image|Image Brightness / Contrast|Image Opacity|Image Filter|Contain Image|Cover Image|Image Hue/Saturation/Lightness|Sharpen Image|Normalise Image|Convert Image Format|Add Text To Image|Hex Density chart|Scatter chart|Series chart|Heatmap chart|Render PDF"],
+["Other","Entropy|Frequency distribution|Index of Coincidence|Chi Square|P-list Viewer|Disassemble x86|Disassemble ARM|Pseudo-Random Number Generator|Pseudo-Random Integer Generator|Generate De Bruijn Sequence|Generate UUID|Analyse UUID|Generate TOTP|Generate HOTP|Generate QR Code|Parse QR Code|Haversine distance|HTML To Text|Generate Lorem Ipsum|Numberwang|XKCD Random Number|Automated Validation Test Op"],
+["Flow control","Magic|Fork|Subsection|Merge|Register|Label|Jump|Conditional Jump|Return|Comment"]
+].map(([n,o])=>({name:n,ops:o?o.split("|"):[]}));
+const rot=(s,n,a,l)=>s.replace(/[a-z]/gi,c=>{const b=c<'a'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+n)%26+b)});
+const MORSE={a:'.-',b:'-...',c:'-.-.',d:'-..',e:'.',f:'..-.',g:'--.',h:'....',i:'..',j:'.---',k:'-.-',l:'.-..',m:'--',n:'-.',o:'---',p:'.--.',q:'--.-',r:'.-.',s:'...',t:'-',u:'..-',v:'...-',w:'.--',x:'-..-',y:'-.--',z:'--..',0:'-----',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.'};
+const b32a='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const bin=(s,r,w)=>[...B(s)].map(x=>x.toString(r).padStart(w,'0')).join(' ');
+const unbin=(s,r)=>S(s.trim().split(/[\s,]+/).filter(Boolean).map(x=>parseInt(x,r)));
+const vig=(s,k,d)=>{k=k.toLowerCase().replace(/[^a-z]/g,'');if(!k)throw Error('Key required');let i=0;return s.replace(/[a-z]/gi,c=>{const b=c<'a'?65:97,sh=k.charCodeAt(i++%k.length)-97;return String.fromCharCode((c.charCodeAt(0)-b+(d?26-sh:sh))%26+b)})};
+const dig=async(a,s)=>[...new Uint8Array(await crypto.subtle.digest(a,B(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const crc=s=>{let c,r=-1;for(const b of B(s)){c=(r^b)&255;for(let k=0;k<8;k++)c=c&1?(c>>>1)^0xEDB88320:c>>>1;r=(r>>>8)^c}return((r^-1)>>>0).toString(16).padStart(8,'0')};
+const L=f=>s=>s.split('\n').map(f).join('\n');
+const camel=s=>s.toLowerCase().replace(/[^a-z0-9]+(.)?/g,(m,c)=>c?c.toUpperCase():'');
+const words=s=>s.replace(/([a-z])([A-Z])/g,'$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+const OPS={
+"To Hex":s=>bin(s,16,2),"From Hex":s=>S((s.replace(/0x|\\x|[^0-9a-f]/gi,'').match(/../g)||[]).map(x=>parseInt(x,16))),
+"To Binary":s=>bin(s,2,8),"From Binary":s=>unbin(s,2),"To Octal":s=>bin(s,8,3).replace(/\b0+(?=\d)/g,''),"From Octal":s=>unbin(s,8),
+"To Decimal":s=>[...B(s)].join(' '),"From Decimal":s=>unbin(s,10),
+"To Charcode":s=>[...s].map(c=>c.codePointAt(0).toString(16)).join(' '),"From Charcode":s=>s.trim().split(/\s+/).map(x=>String.fromCodePoint(parseInt(x,16))).join(''),
+"To Base64":s=>btoa(String.fromCharCode(...B(s))),"From Base64":s=>S([...atob(s.replace(/\s/g,'').replace(/-/g,'+').replace(/_/g,'/'))].map(c=>c.charCodeAt(0))),
+"To Base32":s=>{let b='';for(const x of B(s))b+=x.toString(2).padStart(8,'0');return(b.match(/.{1,5}/g)||[]).map(x=>b32a[parseInt(x.padEnd(5,'0'),2)]).join('').padEnd(Math.ceil(b.length/40)*8,'=')},
+"From Base32":s=>{let b='';for(const c of s.toUpperCase().replace(/=+$/,''))b+=b32a.indexOf(c).toString(2).padStart(5,'0');return S((b.match(/.{8}/g)||[]).map(x=>parseInt(x,2)))},
+"URL Encode":s=>encodeURIComponent(s),"URL Decode":s=>decodeURIComponent(s.replace(/\+/g,' ')),
+"To HTML Entity":s=>[...s].map(c=>c.codePointAt(0)>126||'&<>"\''.includes(c)?'&#'+c.codePointAt(0)+';':c).join(''),
+"From HTML Entity":s=>{const t=document.createElement('textarea');t.innerHTML=s;return t.value},
+"Escape Unicode Characters":s=>[...s].map(c=>c.charCodeAt(0)>126?'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'):c).join(''),
+"Unescape Unicode Characters":s=>s.replace(/\\u([0-9a-f]{4})/gi,(m,h)=>String.fromCharCode(parseInt(h,16))),
+"Escape string":s=>JSON.stringify(s).slice(1,-1),"Unescape string":s=>JSON.parse('"'+s.replace(/"/g,'\\"')+'"'),
+"ROT13":s=>rot(s,13),"ROT47":s=>s.replace(/[!-~]/g,c=>String.fromCharCode((c.charCodeAt(0)-33+47)%94+33)),
+"Atbash Cipher":s=>s.replace(/[a-z]/gi,c=>{const b=c<'a'?65:97;return String.fromCharCode(b+25-(c.charCodeAt(0)-b))}),
+"XOR":(s,a)=>{const k=B(a.key||'');if(!k.length)throw Error('Key required');return S([...B(s)].map((x,i)=>x^k[i%k.length]))},
+"Vigenère Encode":(s,a)=>vig(s,a.key||'',0),"Vigenère Decode":(s,a)=>vig(s,a.key||'',1),
+"To Morse Code":s=>[...s.toLowerCase()].map(c=>c==' '?'/':MORSE[c]||'').filter(Boolean).join(' '),
+"From Morse Code":s=>{const r=Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));return s.trim().split(/\s+/).map(c=>c=='/'?' ':r[c]||'?').join('')},
+"A1Z26 Cipher Encode":s=>[...s.toLowerCase()].filter(c=>/[a-z]/.test(c)).map(c=>c.charCodeAt(0)-96).join(' '),
+"A1Z26 Cipher Decode":s=>s.trim().split(/\W+/).map(n=>String.fromCharCode(+n+96)).join(''),
+"Convert to NATO alphabet":s=>[...s.toLowerCase()].map(c=>({a:'Alfa',b:'Bravo',c:'Charlie',d:'Delta',e:'Echo',f:'Foxtrot',g:'Golf',h:'Hotel',i:'India',j:'Juliett',k:'Kilo',l:'Lima',m:'Mike',n:'November',o:'Oscar',p:'Papa',q:'Quebec',r:'Romeo',s:'Sierra',t:'Tango',u:'Uniform',v:'Victor',w:'Whiskey',x:'X-ray',y:'Yankee',z:'Zulu'})[c]||c).join(' '),
+"Convert Leet Speak":s=>s.replace(/[aeiostl]/gi,c=>({a:4,e:3,i:1,o:0,s:5,t:7,l:1})[c.toLowerCase()]),
+"Reverse":s=>[...s].reverse().join(''),"To Upper case":s=>s.toUpperCase(),"To Lower case":s=>s.toLowerCase(),
+"Swap case":s=>[...s].map(c=>c==c.toUpperCase()?c.toLowerCase():c.toUpperCase()).join(''),
+"Alternating Caps":s=>[...s].map((c,i)=>i%2?c.toLowerCase():c.toUpperCase()).join(''),
+"Remove whitespace":s=>s.replace(/\s+/g,''),"Remove null bytes":s=>s.replace(/\0/g,''),
+"Add line numbers":(s)=>s.split('\n').map((l,i)=>i+1+' '+l).join('\n'),"Remove line numbers":L(l=>l.replace(/^\s*\d+[\s.:)-]?/,'')),
+"Sort":s=>s.split('\n').sort().join('\n'),"Unique":s=>[...new Set(s.split('\n'))].join('\n'),
+"Head":(s,a)=>s.split('\n').slice(0,+a.n||10).join('\n'),"Tail":(s,a)=>s.split('\n').slice(-(+a.n||10)).join('\n'),
+"Find / Replace":(s,a)=>s.split(a.find||'\0').join(a.repl||''),
+"Count occurrences":(s,a)=>String(a.find?s.split(a.find).length-1:0),
+"Entropy":s=>{const b=B(s),f={};b.forEach(x=>f[x]=(f[x]||0)+1);return(-Object.values(f).reduce((t,c)=>t+c/b.length*Math.log2(c/b.length),0)).toFixed(4)+' bits/byte'},
+"JSON Beautify":s=>JSON.stringify(JSON.parse(s),null,2),"JSON Minify":s=>JSON.stringify(JSON.parse(s)),
+"To Snake case":s=>words(s).join('_'),"To Kebab case":s=>words(s).join('-'),"To Camel case":s=>camel(words(s).join(' ')),
+"Strip HTML tags":s=>s.replace(/<[^>]*>/g,''),"Defang URL":s=>s.replace(/\./g,'[.]').replace(/^http/gim,'hxxp'),"Fang URL":s=>s.replace(/\[\.\]/g,'.').replace(/^hxxp/gim,'http'),
+"Extract email addresses":s=>(s.match(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g)||[]).join('\n'),"Extract URLs":s=>(s.match(/https?:\/\/[^\s"'<>]+/g)||[]).join('\n'),
+"Extract IP addresses":s=>(s.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)||[]).join('\n'),
+"MD5":s=>{const m=(x,y)=>(x+y)>>>0,K=Array.from({length:64},(_,i)=>Math.floor(Math.abs(Math.sin(i+1))*2**32)>>>0),R=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];const b=[...B(s)],n=b.length;b.push(128);while(b.length%64!=56)b.push(0);const bl=n*8;for(let i=0;i<8;i++)b.push(i<4?(bl>>>(8*i))&255:0);let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;for(let o=0;o<b.length;o+=64){const M=Array.from({length:16},(_,i)=>(b[o+4*i]|b[o+4*i+1]<<8|b[o+4*i+2]<<16|b[o+4*i+3]<<24)>>>0);let A=a0,Bb=b0,C=c0,D=d0;for(let i=0;i<64;i++){let F,g;if(i<16){F=(Bb&C)|(~Bb&D);g=i}else if(i<32){F=(D&Bb)|(~D&C);g=(5*i+1)%16}else if(i<48){F=Bb^C^D;g=(3*i+5)%16}else{F=C^(Bb|~D);g=7*i%16}F=m(m(m(F>>>0,A),K[i]),M[g]);A=D;D=C;C=Bb;const r=R[(i>>4)*4+i%4];Bb=m(Bb,((F<<r)|(F>>>(32-r)))>>>0)}a0=m(a0,A);b0=m(b0,Bb);c0=m(c0,C);d0=m(d0,D)}return[a0,b0,c0,d0].map(v=>[0,1,2,3].map(i=>((v>>>(8*i))&255).toString(16).padStart(2,'0')).join('')).join('')},
+"SHA1":s=>dig('SHA-1',s),"SHA2":(s,a)=>dig('SHA-'+(a.size||'256'),s),"CRC Checksum":s=>crc(s),
+"Comment":s=>s
+};
+const PARAMS={"XOR":[['key','Key (text)']],"Vigenère Encode":[['key','Key']],"Vigenère Decode":[['key','Key']],"Head":[['n','Lines','10']],"Tail":[['n','Lines','10']],"Find / Replace":[['find','Find'],['repl','Replace']],"Count occurrences":[['find','Search']],"SHA2":[['size','Size','256']]};
+
+const recipes={encode:[],decode:[]};let curMode='encode',rawMessage='';
+const stId=m=>m==='encode'?'encodeStatus':'decodeStatus';
+function buildLibrary(){
+  const box=$('opCats');let tot=0;
+  CAT.forEach(c=>{tot+=c.ops.length;const d=document.createElement('details');d.className='op-cat';
+    d.innerHTML=`<summary>${esc(c.name)}<span>${c.ops.filter(o=>OPS[o]).length}/${c.ops.length}</span></summary>`;
+    const l=document.createElement('div');l.className='op-list';
+    c.ops.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='op'+(OPS[o]?'':' off');b.textContent=o;b.title=OPS[o]?'Add to recipe':'Catalogued — not runnable offline';b.onclick=()=>addStep(o);l.appendChild(b)});
+    d.appendChild(l);box.appendChild(d)});
+  $('libCount').textContent=`${Object.keys(OPS).length} runnable operations · ${tot} catalogued entries. Click one to add it to the current recipe.`;
+  $('opSearch').oninput=e=>{const q=e.target.value.toLowerCase();box.querySelectorAll('.op-cat').forEach(d=>{let n=0;d.querySelectorAll('.op').forEach(b=>{const m=!q||b.textContent.toLowerCase().includes(q);b.style.display=m?'':'none';n+=m});d.style.display=n?'':'none';d.open=!!q&&n>0})};
+}
+function addStep(name){
+  if(curMode==='crypto')return;
+  if(!OPS[name]){setStatus(stId(curMode),`"${name}" is catalogued but not runnable in this offline build.`,'bad');return}
+  recipes[curMode].push({name,args:Object.fromEntries((PARAMS[name]||[]).map(p=>[p[0],p[2]||'']))});renderRecipe(curMode);onRecipeChange(curMode)}
+function renderRecipe(m,bad=-1){
+  const root=$('recipe-'+m),list=recipes[m];root.innerHTML='';
+  if(!list.length){root.innerHTML='<div class="empty">No operations yet. Pick one from the library — or leave empty to use the text as-is.</div>';return}
+  list.forEach((st,i)=>{const d=document.createElement('div');d.className='rstep'+(i===bad?' bad':'');
+    d.innerHTML=`<b>${i+1}. ${esc(st.name)}</b>`;
+    (PARAMS[st.name]||[]).forEach(p=>{const inp=document.createElement('input');inp.className='field';inp.placeholder=p[1];inp.setAttribute('aria-label',p[1]);inp.value=st.args[p[0]];inp.oninput=()=>{st.args[p[0]]=inp.value;onRecipeChange(m)};d.appendChild(inp)});
+    [['↑','Move up',()=>i>0&&([list[i-1],list[i]]=[list[i],list[i-1]])],['↓','Move down',()=>i<list.length-1&&([list[i+1],list[i]]=[list[i],list[i+1]])],['✕','Remove',()=>list.splice(i,1)]].forEach(([t,a,f])=>{const b=document.createElement('button');b.type='button';b.className='mini-btn';b.textContent=t;b.setAttribute('aria-label',a);b.onclick=()=>{f();renderRecipe(m);onRecipeChange(m)};d.appendChild(b)});
+    root.appendChild(d)})}
+async function bake(m,input){
+  let v=input;const list=recipes[m];
+  for(let i=0;i<list.length;i++){try{v=String(await OPS[list[i].name](v,list[i].args))}catch(e){renderRecipe(m,i);return{out:v,err:`Step ${i+1} (${list[i].name}): ${e.message}`}}}
+  renderRecipe(m);return{out:v,err:null}}
+function showErr(m,err){const el=$(m+'RecipeErr');el.textContent=err||'';el.classList.toggle('hidden',!err)}
+function clearRecipe(m){recipes[m]=[];renderRecipe(m);onRecipeChange(m)}
+function onRecipeChange(m){m==='encode'?refreshPayload():refreshDecode()}
+let ptick=0;
+async function refreshPayload(){const t=++ptick,r=await bake('encode',$('message').value);if(t!==ptick)return;showErr('encode',r.err);
+  $('payloadOut').textContent=r.out||'(empty)';const n=new TextEncoder().encode(r.out).length;$('payloadMeta').textContent=`${n} bytes · ${n*8} bits · ≈ ${(4+n*8.4).toFixed(0)} s of audio`}
+let dtick=0;
+async function refreshDecode(){if(!rawMessage)return;const t=++dtick,r=await bake('decode',rawMessage);if(t!==dtick)return;showErr('decode',r.err);
+  decodedMessage=r.out;$('decodeOutput').textContent=r.out||'(empty)';$('outMeta').textContent=r.out.length+' chars'}
+function copyOutput(){if(!decodedMessage)return setStatus('decodeStatus','Nothing to copy.','bad');navigator.clipboard.writeText(decodedMessage).then(()=>setStatus('decodeStatus','Output copied to clipboard.','good'),()=>setStatus('decodeStatus','Copy failed.','bad'))}
+
+
+function switchMode(mode){curMode=mode;$('library').classList.toggle('hidden',mode==='crypto');
+  const encode = mode === 'encode';
+  $('encodeView').classList.toggle('hidden',!encode);
+  const decode = mode === 'decode';
+  const crypto = mode === 'crypto';
+  $('decodeView').classList.toggle('hidden',!decode);
+  $('cryptoView').classList.toggle('hidden',!crypto);
+  $('tabEncode').classList.toggle('active',encode);
+  $('tabDecode').classList.toggle('active',decode);
+  $('tabFileCrypto').classList.toggle('active',crypto);
+}
+function setStatus(id,msg,type='info'){const el=$(id);el.textContent=msg;el.className='status '+type}
+function setExample(text){$('message').value=text;updateCount();setStatus('encodeStatus','Sample text inserted. You can edit it before generating.','good')}
+function clearMessage(){$('message').value='';updateCount();setStatus('encodeStatus','Text cleared. Enter a new message.')}
+function updateCount(){$('charCount').textContent=$('message').value.length+' characters';refreshPayload()}
+$('message').addEventListener('input',updateCount);
+
+async function generateAudio(){
+  const message=$('message').value;
+  if(!message.trim()){setStatus('encodeStatus','Please enter a message first.','bad');return}
+  if(message.length>1200){setStatus('encodeStatus','Message is too long. Please keep it under 1,200 characters.','bad');return}
+  const btn=$('generateBtn');btn.disabled=true;btn.textContent='Generating…';$('encodeMeter').style.width='20%';
+  try{
+    const baked=await bake('encode',message);if(baked.err)throw new Error(baked.err);const payload=baked.out;if(!payload.trim())throw new Error('The recipe produced an empty payload.');if(payload.length>2400)throw new Error('Payload is too long for audio (max 2,400 characters after the recipe).');const blob=createTimedAudio(payload);
+    const url=URL.createObjectURL(blob);
+    const filename='audio_message_'+new Date().toISOString().replace(/[:.]/g,'-')+'.wav';
+    const item={filename,url,blob,message:payload,size:blob.size};
+    generated.unshift(item);generated=generated.slice(0,6);
+    renderEncodeOutput(item);renderEncodeHistory();
+    $('encodeMeter').style.width='100%';
+    setStatus('encodeStatus',`WAV created successfully · ${(blob.size/1024).toFixed(1)} KB`,'good');
+  }catch(e){setStatus('encodeStatus','Could not generate audio: '+e.message,'bad')}
+  finally{btn.disabled=false;btn.textContent='♫ Generate WAV';setTimeout(()=>$('encodeMeter').style.width='0%',1200)}
+}
+function createTimedAudio(message){
+  const sampleRate=44100, bytes=new TextEncoder().encode(message), bits=[];
+  for(const byte of bytes)for(let shift=7;shift>=0;shift--)bits.push((byte>>shift)&1);
+  const start=2, bitDuration=1, gap=.05, end=2;
+  const totalSamples=Math.floor((start+bits.length*(bitDuration+gap)+end)*sampleRate);
+  const data=new Float32Array(totalSamples);let pos=0;
+  pos=addTone(data,pos,2000,start,sampleRate);
+  for(const bit of bits){pos=addTone(data,pos,bit?2000:1000,bitDuration,sampleRate);pos=addSilence(data,pos,gap,sampleRate)}
+  addTone(data,pos,2000,end,sampleRate);
+  return createWAV(data,sampleRate);
+}
+function addTone(data,start,freq,duration,rate){const n=Math.floor(duration*rate);for(let i=0;i<n&&start+i<data.length;i++)data[start+i]=Math.sin(2*Math.PI*freq*i/rate)*.7;return start+n}
+function addSilence(data,start,duration,rate){return start+Math.floor(duration*rate)}
+function createWAV(data,rate){
+  const buffer=new ArrayBuffer(44),v=new DataView(buffer),bytesPerSample=2;
+  function str(offset,s){for(let i=0;i<s.length;i++)v.setUint8(offset+i,s.charCodeAt(i))}
+  str(0,'RIFF');v.setUint32(4,36+data.length*2,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,'data');v.setUint32(40,data.length*2,true);
+  const out=new Uint8Array(44+data.length*2);out.set(new Uint8Array(buffer));
+  const view=new DataView(out.buffer);for(let i=0;i<data.length;i++){const x=Math.max(-1,Math.min(1,data[i]));view.setInt16(44+i*2,x<0?x*32768:x*32767,true)}
+  return new Blob([out],{type:'audio/wav'});
+}
+function renderEncodeOutput(item){
+  $('encodeOutput').className='';$('encodeOutput').innerHTML='';
+  const title=document.createElement('div');title.style.fontWeight='800';title.textContent=item.filename;
+  const meta=document.createElement('div');meta.className='file-meta';meta.textContent=`${(item.size/1024).toFixed(1)} KB · ${item.message.length} characters`;
+  const audio=document.createElement('audio');audio.controls=true;audio.src=item.url;audio.style.width='100%';audio.style.margin='18px 0';
+  const actions=document.createElement('div');actions.className='actions';
+  const download=document.createElement('a');download.href=item.url;download.download=item.filename;download.className='btn btn-primary';download.textContent='↓ Download WAV';download.style.textDecoration='none';
+  const preview=document.createElement('button');preview.className='btn btn-ghost';preview.textContent='Use in decoder';preview.onclick=()=>{switchMode('decode');setStatus('decodeStatus','Switch to the decoder and choose the downloaded WAV file.');};
+  actions.append(download,preview);$('encodeOutput').append(title,meta,audio,actions);
+}
+function renderEncodeHistory(){
+  const root=$('encodeHistory');root.innerHTML='';
+  if(!generated.length){root.innerHTML='<div class="empty">No files generated in this session.</div>';return}
+  generated.forEach(item=>{const row=document.createElement('div');row.className='history-item';const info=document.createElement('div');const name=document.createElement('strong');name.textContent=item.filename;const sub=document.createElement('small');sub.textContent=(item.size/1024).toFixed(1)+' KB';info.append(name,sub);const a=document.createElement('a');a.href=item.url;a.download=item.filename;a.className='mini-btn';a.textContent='Download';row.append(info,a);root.append(row)})
+}
+const drop=$('dropzone'),fileInput=$('audioFile');
+drop.addEventListener('click',e=>{if(e.target.closest('button'))return;fileInput.click()});
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click()}});
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag');if(e.dataTransfer.files[0])decodeAudio(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',e=>{if(e.target.files[0])decodeAudio(e.target.files[0])});
+
+async function decodeAudio(file){
+  const audioLike = (file.type && file.type.startsWith('audio/')) || /\.(wav|mp3|m4a|aac|ogg|flac|opus|wma|aiff|aif|webm|weba|caf|au|mp4)$/i.test(file.name);
+  if(!audioLike){setStatus('decodeStatus','Please choose a supported audio file.','bad');return}
+  $('fileMeta').textContent=`Selected: ${file.name} · ${(file.size/1024).toFixed(1)} KB`;
+  setStatus('decodeStatus','Reading and analysing audio…');$('decodeMeter').style.width='10%';$('decodeResult').textContent='Decoding in progress…';
+  let ctx;
+  try{
+    const buf=await file.arrayBuffer();ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const audio=await ctx.decodeAudioData(buf.slice(0));const data=audio.getChannelData(0),rate=audio.sampleRate,duration=audio.duration;
+    $('durationStat').textContent=duration.toFixed(1)+' s';$('rateStat').textContent=(rate/1000).toFixed(1)+' kHz';
+    const sig=decodeSignal(data,rate),bits=sig.bits;$('decodeMeter').style.width='80%';
+    $('bitsStat').textContent=bits.length;
+    if(bits.length<8){throw new Error('No readable tone signal found. Use an original AudioCrypt WAV file; compressed audio may not preserve the signal.')}
+    const bytes=[];for(let i=0;i+7<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=(b<<1)|bits[i+j];bytes.push(b)}
+    rawMessage=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(bytes)).replace(/\u0000+$/g,'');
+    $('decodeResult').textContent=rawMessage||'(No readable text recovered)';
+    $('decodedChars').textContent=rawMessage.length;
+    decodedHistory.unshift({name:file.name,message:rawMessage,at:new Date().toLocaleTimeString()});decodedHistory=decodedHistory.slice(0,5);renderDecodeHistory();await refreshDecode();
+    setStatus('decodeStatus',`Decoding complete · analysed ${bits.length} bits.`,'good');$('decodeMeter').style.width='100%';
+  }catch(e){$('decodeResult').textContent='Unable to decode this file.';setStatus('decodeStatus',e.message||'Could not decode this audio file. The browser may not support its format.','bad');$('bitsStat').textContent='—';$('decodedChars').textContent='—'}
+  finally{if(ctx)try{await ctx.close()}catch{}setTimeout(()=>$('decodeMeter').style.width='0%',1800)}
+}
+function goertzel(x,start,n,f,rate){const w=2*Math.PI*f/rate,c=2*Math.cos(w);let q1=0,q2=0;for(let i=start;i<start+n;i++){const q0=c*q1-q2+x[i];q2=q1;q1=q0}return 2*Math.sqrt(Math.max(0,q1*q1+q2*q2-c*q1*q2))/n}
+function decodeSignal(x,rate){
+  const blk=Math.floor(rate*.005);let t0=-1;
+  for(let i=0;i+blk<x.length;i+=blk){let s=0;for(let j=0;j<blk;j++)s+=x[i+j]*x[i+j];if(Math.sqrt(s/blk)>.05){t0=i;break}}
+  if(t0<0)return{bits:[],t0:-1};
+  const bitLen=rate,step=rate+Math.floor(rate*.05),first=t0+2*rate,bits=[];
+  for(let p=first;p+bitLen<=x.length+Math.floor(rate*.05);p+=step){
+    const a=p+Math.floor(rate*.05),n=Math.min(Math.floor(rate*.9),x.length-a);if(n<rate*.5)break;
+    const e1=goertzel(x,a,n,1000,rate),e2=goertzel(x,a,n,2000,rate);
+    if(e2>.05&&e2>e1*1.35)bits.push(1);else if(e1>.05&&e1>e2*1.35)bits.push(0);else break}
+  bits.length-=bits.length%8;return{bits,t0}}
+
+function renderDecodeHistory(){
+ const root=$('decodeHistory');root.innerHTML='';
+ decodedHistory.forEach(item=>{const row=document.createElement('div');row.className='history-item';const info=document.createElement('div');const name=document.createElement('strong');name.textContent=item.name;const sub=document.createElement('small');sub.textContent=`${item.at} · ${item.message.length} characters`;info.append(name,sub);const b=document.createElement('button');b.className='mini-btn';b.textContent='View';b.onclick=()=>{rawMessage=item.message;$('decodeResult').textContent=item.message;refreshDecode()};row.append(info,b);root.append(row)});
+}
+function clearDecode(){decodedMessage='';rawMessage='';$('decodeOutput').textContent='—';$('outMeta').textContent='—';showErr('decode','');fileInput.value='';$('fileMeta').textContent='';$('decodeResult').textContent='No message decoded yet.';['durationStat','rateStat','bitsStat','decodedChars'].forEach(id=>$(id).textContent='—');$('decodeMeter').style.width='0';setStatus('decodeStatus','Result cleared. Choose an audio file to decode.')}
+function exportMessage(){
+ if(!decodedMessage){setStatus('decodeStatus','There is no decoded message to export.','bad');return}
+ const blob=new Blob([decodedMessage],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='audio_message_decoded_message.txt';a.click();URL.revokeObjectURL(url);setStatus('decodeStatus','Text file exported successfully.','good')
+}
+
+// Audio-file encryption uses Web Crypto AES-GCM. No network requests or persistent storage are used.
+const AENC_MAGIC = new TextEncoder().encode('AENC1');
+async function deriveAudioKey(password, salt) {
+  const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:310000, hash:'SHA-256'}, material, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+function safeBaseName(name) { return name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0,100) || 'audio'; }
+function saveBlob(blob, filename) {
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+async function encryptAudioFile() {
+  const file=$('encryptFile').files[0], password=$('encryptPassword').value, confirm=$('encryptConfirm').value, btn=$('encryptBtn');
+  if(!file){setStatus('encryptStatus','Choose an audio file first.','bad');return}
+  if(!password || password.length<8){setStatus('encryptStatus','Use a password with at least 8 characters.','bad');return}
+  if(password!==confirm){setStatus('encryptStatus','The passwords do not match.','bad');return}
+  if(!crypto.subtle){setStatus('encryptStatus','Web Crypto is unavailable in this browser context. Open this file in a modern browser or localhost.','bad');return}
+  btn.disabled=true; btn.textContent='Encrypting…';
+  try {
+    const salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+    const key=await deriveAudioKey(password,salt), plain=await file.arrayBuffer();
+    const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plain);
+    const output=new Uint8Array(AENC_MAGIC.length+salt.length+iv.length+encrypted.byteLength);
+    output.set(AENC_MAGIC,0); output.set(salt,AENC_MAGIC.length); output.set(iv,AENC_MAGIC.length+salt.length); output.set(new Uint8Array(encrypted),AENC_MAGIC.length+salt.length+iv.length);
+    saveBlob(new Blob([output],{type:'application/octet-stream'}),safeBaseName(file.name)+'.aenc');
+    setStatus('encryptStatus',`Encrypted successfully: ${file.name} · ${(output.length/1024).toFixed(1)} KB downloaded as .aenc.`,'good');
+  } catch(e) { setStatus('encryptStatus','Encryption failed. '+(e.message||'Please try another file.'),'bad'); }
+  finally {btn.disabled=false;btn.textContent='🔒 Encrypt audio';}
+}
+async function decryptAudioFile() {
+  const file=$('decryptFile').files[0], password=$('decryptPassword').value, btn=$('decryptBtn');
+  if(!file){setStatus('decryptStatus','Choose an encrypted .aenc file first.','bad');return}
+  if(!password){setStatus('decryptStatus','Enter the original password.','bad');return}
+  if(!crypto.subtle){setStatus('decryptStatus','Web Crypto is unavailable in this browser context. Open this file in a modern browser or localhost.','bad');return}
+  btn.disabled=true;btn.textContent='Decrypting…';
+  try {
+    const input=new Uint8Array(await file.arrayBuffer()), head=AENC_MAGIC.length+16+12;
+    if(input.length<=head || AENC_MAGIC.some((b,i)=>input[i]!==b)) throw new Error('This does not look like a supported .aenc file.');
+    const salt=input.slice(AENC_MAGIC.length,AENC_MAGIC.length+16), iv=input.slice(AENC_MAGIC.length+16,head), data=input.slice(head);
+    const key=await deriveAudioKey(password,salt);
+    const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,data);
+    const originalName=file.name.replace(/\.aenc$/i,'') || 'decrypted-audio';
+    const mime=guessAudioMime(originalName);
+    saveBlob(new Blob([plain],{type:mime}),originalName);
+    setStatus('decryptStatus',`Decryption successful. Restored file downloaded as ${originalName}.`,'good');
+  } catch(e) { setStatus('decryptStatus','Decryption failed. The password may be wrong, or the file may be damaged.','bad'); }
+  finally {btn.disabled=false;btn.textContent='🔓 Decrypt audio';}
+}
+function guessAudioMime(name) {
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  return ({wav:'audio/wav',mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/opus',flac:'audio/flac',wma:'audio/x-ms-wma',aiff:'audio/aiff',aif:'audio/aiff',webm:'audio/webm',weba:'audio/webm',caf:'audio/x-caf',au:'audio/basic',mp4:'audio/mp4'})[ext] || 'application/octet-stream';
+}
+function clearCrypto() {
+  $('decryptFile').value='';$('decryptPassword').value='';$('encryptFile').value='';$('encryptPassword').value='';$('encryptConfirm').value='';
+  setStatus('encryptStatus','Choose a file and enter a password.');setStatus('decryptStatus','Select an .aenc file to begin.');
+}
+
+buildLibrary();renderRecipe('encode');renderRecipe('decode');updateCount();
+
+// Theme toggle (light / dark, follows system by default)
+(function(){const r=document.documentElement,m=matchMedia('(prefers-color-scheme:dark)');
+ if(m.matches)r.dataset.theme='dark';
+ $('themeBtn').addEventListener('click',()=>{r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'})})();
+</script>
+</body>
+</html>
